@@ -76,7 +76,7 @@ public class SecurityConfig {
             // Headers de seguridad
             .headers(headers -> headers
                 .frameOptions(frame -> frame.deny())
-                .xssProtection(xss -> xss.enable())
+                .xssProtection(xss -> {})
                 .contentSecurityPolicy(csp -> csp
                     .policyDirectives("default-src 'self'; " +
                         "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
