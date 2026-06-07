@@ -1,0 +1,8 @@
+# Ignorar en el build de Docker (hace el contexto más rápido)
+.git
+.gitignore
+.idea
+target
+*.md
+compose.yaml
+SEGURIDAD.md
