@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${persona.nombre} + ' ' + ${persona.apellido} + ' — CV'">Mi CV</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --dark: #0f172a;
+            --card-bg: rgba(255,255,255,0.85);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* ── CANVAS 3D BACKGROUND ── */
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .page-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 1rem 3rem;
+            perspective: 1000px;
+        }
+
+        .hero-card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 32px;
+            padding: 4rem 3rem;
+            text-align: center;
+            max-width: 700px;
+            width: 100%;
+            animation: heroFloat 6s ease-in-out infinite;
+            box-shadow: 0 32px 80px rgba(99,102,241,0.25);
+            transform-style: preserve-3d;
+        }
+
+        @keyframes heroFloat {
+            0%, 100% { transform: translateY(0) rotateX(0deg); }
+            50% { transform: translateY(-12px) rotateX(1deg); }
+        }
+
+        .avatar-ring {
+            width: 120px; height: 120px;
+            margin: 0 auto 2rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            padding: 3px;
+            animation: ringRotate 8s linear infinite;
+        }
+
+        @keyframes ringRotate {
+            from { filter: hue-rotate(0deg); }
+            to { filter: hue-rotate(360deg); }
+        }
+
+        .avatar-inner {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #fff;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+
+        .hero .lead {
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        .contact-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .contact-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.85);
+            padding: 0.5rem 1.2rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+
+        .contact-pill:hover {
+            background: rgba(99,102,241,0.3);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero {
+            padding: 0.75rem 2rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary-hero {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+        }
+
+        .btn-primary-hero:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 14px 32px rgba(99,102,241,0.5);
+            color: white;
+        }
+
+        .btn-outline-hero {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255,255,255,0.25);
+        }
+
+        .btn-outline-hero:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-3px);
+            color: white;
+        }
+
+        /* ── SECTIONS ── */
+        .cv-section {
+            padding: 2rem 0;
+        }
+
+        .section-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+        }
+
+        .section-label::before {
+            content: '';
+            width: 24px; height: 2px;
+            background: var(--accent);
+            display: inline-block;
+        }
+
+        .glass-card {
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.4s, box-shadow 0.4s, border-color 0.4s;
+            animation: slideUp 0.6s ease both;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 24px 60px rgba(99,102,241,0.2);
+            border-color: rgba(99,102,241,0.4);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-card:nth-child(1) { animation-delay: 0.1s; }
+        .glass-card:nth-child(2) { animation-delay: 0.2s; }
+        .glass-card:nth-child(3) { animation-delay: 0.3s; }
+
+        .card-icon {
+            width: 52px; height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .icon-purple { background: rgba(99,102,241,0.15); color: var(--primary); }
+        .icon-blue   { background: rgba(6,182,212,0.15);  color: var(--accent); }
+        .icon-violet { background: rgba(139,92,246,0.15); color: var(--secondary); }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .card-content {
+            color: rgba(255,255,255,0.72);
+            line-height: 1.85;
+            white-space: pre-line;
+            font-size: 0.95rem;
+        }
+
+        /* Habilidades como badges */
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+        }
+
+        .skill-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid;
+            transition: all 0.3s;
+            animation: popIn 0.4s ease both;
+        }
+
+        .skill-badge:nth-child(odd)  { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.35); color: #a5b4fc; }
+        .skill-badge:nth-child(even) { background: rgba(6,182,212,0.1);   border-color: rgba(6,182,212,0.3);   color: #67e8f9; }
+
+        .skill-badge:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 16px rgba(99,102,241,0.3);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.7); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        /* Social buttons */
+        .social-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .social-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.65rem 1.5rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 1px solid;
+        }
+
+        .social-linkedin {
+            background: rgba(10,102,194,0.15);
+            border-color: rgba(10,102,194,0.4);
+            color: #60a5fa;
+        }
+
+        .social-linkedin:hover {
+            background: rgba(10,102,194,0.3);
+            transform: translateY(-3px);
+            color: #93c5fd;
+        }
+
+        .social-github {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.8);
+        }
+
+        .social-github:hover {
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-3px);
+            color: #fff;
+        }
+
+        /* Flash message */
+        .flash-bar {
+            position: fixed;
+            top: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 999px;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(16,185,129,0.4);
+            transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .flash-bar.show { transform: translateX(-50%) translateY(0); }
+
+        /* FAB edit button */
+        .fab-edit {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            text-decoration: none;
+            box-shadow: 0 8px 24px rgba(99,102,241,0.5);
+            transition: all 0.3s;
+            z-index: 100;
+            animation: fabPulse 3s ease-in-out infinite;
+        }
+
+        .fab-edit:hover {
+            transform: scale(1.15) rotate(10deg);
+            color: white;
+            box-shadow: 0 14px 40px rgba(99,102,241,0.7);
+        }
+
+        @keyframes fabPulse {
+            0%, 100% { box-shadow: 0 8px 24px rgba(99,102,241,0.5); }
+            50% { box-shadow: 0 8px 40px rgba(99,102,241,0.8); }
+        }
+
+        /* Scroll sections */
+        .scroll-observe {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .scroll-observe.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: rgba(255,255,255,0.25);
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 600px) {
+            .hero-card { padding: 2.5rem 1.5rem; }
+            .glass-card { padding: 1.75rem; }
+        }
+    </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<div class="page-wrapper">
+
+    <!-- Flash message -->
+    <div class="flash-bar" id="flashBar" th:if="${mensaje != null}">
+        <i class="fas fa-check-circle"></i>
+        <span th:text="${mensaje}"></span>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-card">
+            <div class="avatar-ring">
+                <div class="avatar-inner">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+
+            <h1 th:text="${persona.nombre} + ' ' + ${persona.apellido}">Nombre Completo</h1>
+            <p class="lead" th:text="${persona.perfil}">Perfil profesional aquí...</p>
+
+            <div class="contact-pills">
+                <span class="contact-pill" th:if="${persona.email}">
+                    <i class="fas fa-envelope"></i>
+                    <span th:text="${persona.email}"></span>
+                </span>
+                <span class="contact-pill" th:if="${persona.telefono}">
+                    <i class="fas fa-phone"></i>
+                    <span th:text="${persona.telefono}"></span>
+                </span>
+                <span class="contact-pill" th:if="${persona.ciudad}">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span th:text="${persona.ciudad} + ', ' + ${persona.pais}"></span>
+                </span>
+            </div>
+
+            <div class="hero-actions">
+                <a th:if="${persona.linkedin}" th:href="${persona.linkedin}" target="_blank" class="btn-hero btn-primary-hero">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </a>
+                <a th:if="${persona.github}" th:href="${persona.github}" target="_blank" class="btn-hero btn-outline-hero">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTENT -->
+    <div class="cv-section">
+        <div class="section-container">
+
+            <!-- Experiencia -->
+            <div class="scroll-observe" th:if="${persona.experiencia}">
+                <p class="section-label">
+                    <i class="fas fa-briefcase"></i> Trayectoria
+                </p>
+                <div class="glass-card">
+                    <div class="card-icon icon-purple">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h2 class="card-title">Experiencia Laboral</h2>
+                    <p class="card-content" th:text="${persona.experiencia}"></p>
+                </div>
+            </div>
+
+            <!-- Educación -->
+            <div class="scroll-observe" th:if="${persona.educacion}">
+                <p class="section-label">
+                    <i class="fas fa-graduation-cap"></i> Formación
+                </p>
+                <div class="glass-card">
+                    <div class="card-icon icon-blue">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h2 class="card-title">Educación</h2>
+                    <p class="card-content" th:text="${persona.educacion}"></p>
+                </div>
+            </div>
+
+            <!-- Habilidades -->
+            <div class="scroll-observe" th:if="${persona.habilidades}">
+                <p class="section-label">
+                    <i class="fas fa-code"></i> Stack
+                </p>
+                <div class="glass-card">
+                    <div class="card-icon icon-violet">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h2 class="card-title">Habilidades</h2>
+                    <div class="skills-grid" id="skillsGrid"></div>
+                    <p id="rawSkills" style="display:none" th:text="${persona.habilidades}"></p>
+                </div>
+            </div>
+
+            <!-- Redes -->
+            <div class="scroll-observe" th:if="${persona.linkedin != null or persona.github != null}">
+                <div class="glass-card">
+                    <div class="card-icon icon-purple">
+                        <i class="fas fa-share-alt"></i>
+                    </div>
+                    <h2 class="card-title">Redes Profesionales</h2>
+                    <div class="social-row">
+                        <a th:if="${persona.linkedin}" th:href="${persona.linkedin}" target="_blank" class="social-btn social-linkedin">
+                            <i class="fab fa-linkedin"></i> LinkedIn
+                        </a>
+                        <a th:if="${persona.github}" th:href="${persona.github}" target="_blank" class="social-btn social-github">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>Hecho con ❤️ · Spring Boot + Thymeleaf</footer>
+</div>
+
+<!-- FAB editar - solo visible con sesión activa -->
+<a th:href="@{/editar}" class="fab-edit" title="Editar CV (Admin)">
+    <i class="fas fa-pen"></i>
+</a>
+
+<!-- Admin login link discreto -->
+<a th:href="@{/login}" style="position:fixed; bottom:2rem; left:2rem; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#64748b; border-radius:0.5rem; padding:0.4rem 0.75rem; font-size:0.75rem; text-decoration:none; z-index:999; transition:all 0.2s;"
+   onmouseover="this.style.color='#94a3b8'" onmouseout="this.style.color='#64748b'">
+    <i class="fas fa-lock" style="margin-right:0.3rem;"></i>Admin
+</a>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── 3D PARTICLES BACKGROUND ──
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const COLORS = ['#6366f1','#8b5cf6','#06b6d4','#818cf8'];
+
+class Particle {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.z = Math.random() * 800 + 200;
+        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vy = (Math.random() - 0.5) * 0.4;
+        this.vz = -Math.random() * 0.5 - 0.2;
+        this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        this.size = Math.random() * 2.5 + 0.5;
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.z += this.vz;
+        if (this.z < 1) this.reset();
+    }
+    draw() {
+        const scale = 600 / this.z;
+        const sx = (this.x - canvas.width/2) * scale + canvas.width/2;
+        const sy = (this.y - canvas.height/2) * scale + canvas.height/2;
+        const alpha = Math.max(0, (1 - this.z/1000) * 0.8);
+        const r = this.size * scale;
+        if (sx < -r || sx > canvas.width+r || sy < -r || sy > canvas.height+r) { this.reset(); return; }
+        ctx.beginPath();
+        ctx.arc(sx, sy, Math.max(0.5, r), 0, Math.PI*2);
+        ctx.fillStyle = this.color + Math.round(alpha*255).toString(16).padStart(2,'0');
+        ctx.fill();
+    }
+}
+
+const particles = Array.from({length: 160}, () => new Particle());
+
+// Connections
+function drawConnections() {
+    const projected = particles.map(p => {
+        const scale = 600 / p.z;
+        return {
+            x: (p.x - canvas.width/2) * scale + canvas.width/2,
+            y: (p.y - canvas.height/2) * scale + canvas.height/2,
+            alpha: (1 - p.z/1000) * 0.5
+        };
+    });
+    for (let i = 0; i < projected.length; i++) {
+        for (let j = i+1; j < projected.length; j++) {
+            const dx = projected[i].x - projected[j].x;
+            const dy = projected[i].y - projected[j].y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 80) {
+                const alpha = (1 - dist/80) * Math.min(projected[i].alpha, projected[j].alpha) * 0.3;
+                ctx.beginPath();
+                ctx.moveTo(projected[i].x, projected[i].y);
+                ctx.lineTo(projected[j].x, projected[j].y);
+                ctx.strokeStyle = `rgba(99,102,241,${alpha})`;
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+            }
+        }
+    }
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    drawConnections();
+    requestAnimationFrame(animate);
+}
+animate();
+
+// ── MOUSE PARALLAX ──
+let mx = 0, my = 0;
+document.addEventListener('mousemove', e => {
+    mx = (e.clientX - window.innerWidth/2) / window.innerWidth;
+    my = (e.clientY - window.innerHeight/2) / window.innerHeight;
+    const card = document.querySelector('.hero-card');
+    if (card) {
+        card.style.transform = `rotateY(${mx*6}deg) rotateX(${-my*4}deg)`;
+    }
+});
+
+// ── SKILLS RENDER ──
+const rawEl = document.getElementById('rawSkills');
+const gridEl = document.getElementById('skillsGrid');
+if (rawEl && gridEl) {
+    const skills = rawEl.textContent.split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
+    skills.forEach((s, i) => {
+        const badge = document.createElement('span');
+        badge.className = 'skill-badge';
+        badge.textContent = s;
+        badge.style.animationDelay = (i * 0.06) + 's';
+        gridEl.appendChild(badge);
+    });
+}
+
+// ── SCROLL ANIMATIONS ──
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+    });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.scroll-observe').forEach(el => observer.observe(el));
+
+// ── FLASH MESSAGE ──
+const flash = document.getElementById('flashBar');
+if (flash) {
+    setTimeout(() => flash.classList.add('show'), 300);
+    setTimeout(() => flash.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+/* Global base — main styles are inline in templates for zero-dependency deploys */
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+}

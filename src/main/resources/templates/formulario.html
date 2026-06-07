@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar CV</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 5rem;
+        }
+
+        .form-header {
+            margin-bottom: 3rem;
+            animation: fadeDown 0.6s ease both;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            transition: color 0.3s;
+        }
+        .back-btn:hover { color: #fff; }
+
+        .form-header h1 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+
+        .form-header p {
+            color: rgba(255,255,255,0.45);
+            margin-top: 0.5rem;
+        }
+
+        /* Card sections */
+        .form-section {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            animation: slideUp 0.5s ease both;
+            backdrop-filter: blur(12px);
+        }
+
+        .form-section:nth-child(1) { animation-delay: 0.05s; }
+        .form-section:nth-child(2) { animation-delay: 0.1s; }
+        .form-section:nth-child(3) { animation-delay: 0.15s; }
+        .form-section:nth-child(4) { animation-delay: 0.2s; }
+        .form-section:nth-child(5) { animation-delay: 0.25s; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .section-heading .icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .icon-a { background: rgba(99,102,241,0.2); color: #818cf8; }
+        .icon-b { background: rgba(6,182,212,0.15); color: #22d3ee; }
+        .icon-c { background: rgba(139,92,246,0.2); color: #a78bfa; }
+        .icon-d { background: rgba(16,185,129,0.15); color: #34d399; }
+
+        /* Form controls */
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            background: rgba(99,102,241,0.08);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+            color: #fff;
+            outline: none;
+        }
+
+        .form-control::placeholder { color: rgba(255,255,255,0.2); }
+
+        .form-control:hover:not(:focus) {
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        textarea.form-control { resize: vertical; min-height: 110px; }
+
+        .form-text {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.3);
+            margin-top: 0.4rem;
+        }
+
+        /* Submit area */
+        .submit-bar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .btn-save {
+            padding: 0.85rem 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 30px rgba(99,102,241,0.5);
+        }
+
+        .btn-save:active { transform: scale(0.97); }
+
+        .btn-cancel {
+            padding: 0.85rem 1.75rem;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            color: rgba(255,255,255,0.55);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
+
+        @media (max-width: 580px) {
+            .form-section { padding: 1.5rem; }
+            .btn-save, .btn-cancel { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<div class="page">
+    <div class="form-header">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:1.5rem;">
+            <a th:href="@{/}" class="back-btn" style="margin-bottom:0;">
+                <i class="fas fa-arrow-left"></i> Volver al CV
+            </a>
+            <form th:action="@{/logout}" method="post" style="margin:0;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#fca5a5; border-radius:0.5rem; padding:0.4rem 1rem; font-size:0.85rem; cursor:pointer;">
+                    <i class="fas fa-sign-out-alt me-1"></i> Cerrar sesión
+                </button>
+            </form>
+        </div>
+        <h1>Editar CV</h1>
+        <p>Actualiza tu información profesional</p>
+    </div>
+
+    <form th:action="@{/guardar}" th:object="${persona}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input type="hidden" th:field="*{id}"/>
+
+        <!-- Datos personales -->
+        <div class="form-section">
+            <div class="section-heading">
+                <div class="icon icon-a"><i class="fas fa-user"></i></div>
+                Datos Personales
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" th:field="*{nombre}" placeholder="Tu nombre" required/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Apellido</label>
+                    <input type="text" class="form-control" th:field="*{apellido}" placeholder="Tu apellido" required/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" th:field="*{email}" placeholder="email@ejemplo.com"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Teléfono</label>
+                    <input type="text" class="form-control" th:field="*{telefono}" placeholder="+57 300 000 0000"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ciudad</label>
+                    <input type="text" class="form-control" th:field="*{ciudad}" placeholder="Bogotá"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">País</label>
+                    <input type="text" class="form-control" th:field="*{pais}" placeholder="Colombia"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Perfil -->
+        <div class="form-section">
+            <div class="section-heading">
+                <div class="icon icon-b"><i class="fas fa-id-card"></i></div>
+                Perfil Profesional
+            </div>
+            <label class="form-label">Resumen</label>
+            <textarea class="form-control" th:field="*{perfil}" rows="4"
+                      placeholder="Describe brevemente tu perfil profesional y lo que te hace destacar..."></textarea>
+        </div>
+
+        <!-- Experiencia -->
+        <div class="form-section">
+            <div class="section-heading">
+                <div class="icon icon-a"><i class="fas fa-briefcase"></i></div>
+                Experiencia Laboral
+            </div>
+            <label class="form-label">Detalle</label>
+            <textarea class="form-control" th:field="*{experiencia}" rows="6"
+                      placeholder="Empresa XYZ — Desarrollador Backend (2022 - Presente)&#10;Descripción de responsabilidades...&#10;&#10;Empresa ABC — Junior Dev (2020 - 2022)&#10;..."></textarea>
+            <p class="form-text"><i class="fas fa-info-circle"></i> Separa cada experiencia con una línea en blanco.</p>
+        </div>
+
+        <!-- Educación -->
+        <div class="form-section">
+            <div class="section-heading">
+                <div class="icon icon-c"><i class="fas fa-graduation-cap"></i></div>
+                Educación
+            </div>
+            <label class="form-label">Formación</label>
+            <textarea class="form-control" th:field="*{educacion}" rows="5"
+                      placeholder="Universidad Nacional — Ingeniería de Sistemas (2016-2021)&#10;Descripción...&#10;&#10;Certificación AWS (2023)"></textarea>
+        </div>
+
+        <!-- Habilidades y Redes -->
+        <div class="form-section">
+            <div class="section-heading">
+                <div class="icon icon-d"><i class="fas fa-code"></i></div>
+                Habilidades & Redes
+            </div>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Habilidades</label>
+                    <textarea class="form-control" th:field="*{habilidades}" rows="3"
+                              placeholder="Java, Spring Boot, PostgreSQL, React, Docker, AWS, Git..."></textarea>
+                    <p class="form-text">Separa con comas — se mostrarán como etiquetas de colores.</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">LinkedIn</label>
+                    <input type="url" class="form-control" th:field="*{linkedin}"
+                           placeholder="https://linkedin.com/in/tuperfil"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">GitHub</label>
+                    <input type="url" class="form-control" th:field="*{github}"
+                           placeholder="https://github.com/tuusuario"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="submit-bar">
+            <button type="submit" class="btn-save">
+                <i class="fas fa-save"></i> Guardar Cambios
+            </button>
+            <a th:href="@{/}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Subtle 3D background for form page
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const dots = Array.from({length: 60}, () => ({
+    x: Math.random() * innerWidth,
+    y: Math.random() * innerHeight,
+    vx: (Math.random()-0.5)*0.3,
+    vy: (Math.random()-0.5)*0.3,
+    r: Math.random()*2+1,
+    c: ['#6366f1','#8b5cf6','#06b6d4'][Math.floor(Math.random()*3)]
+}));
+
+function animateBg() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    dots.forEach(d => {
+        d.x += d.vx; d.y += d.vy;
+        if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
+        if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+        ctx.fillStyle = d.c + '60';
+        ctx.fill();
+    });
+    requestAnimationFrame(animateBg);
+}
+animateBg();
+
+// Focus ring on inputs
+document.querySelectorAll('.form-control').forEach(el => {
+    el.addEventListener('focus', () => el.closest('.form-section')?.style.setProperty('border-color','rgba(99,102,241,0.35)'));
+    el.addEventListener('blur',  () => el.closest('.form-section')?.style.setProperty('border-color','rgba(255,255,255,0.09)'));
+});
+</script>
+</body>
+</html>
